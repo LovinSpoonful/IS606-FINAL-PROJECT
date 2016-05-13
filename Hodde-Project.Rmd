@@ -1,0 +1,107 @@
+---
+title: "IS606 Final Project"
+author: "Rob Hodde"
+date: "May 15, 2016"
+output: html_document
+---
+
+```{r include=FALSE, cache=FALSE}
+# DO NOT REMOVE
+# THIS IS FOR SETTING SOME PLOTTING PARAMETERS SO THAT YOUR PLOTS DON'T TAKE UP TOO MUCH SPACE
+# IF YOU WOULD LIKE TO CHANGE THESE, SEE HELP FILES ON THE par() FUNCTION
+# OR ASK FOR HELP
+library(knitr)
+## set global chunk options
+opts_chunk$set(fig.path='figure/manual-', cache.path='cache/manual-', fig.align='center', fig.show='hold', par=TRUE)
+## tune details of base graphics (http://yihui.name/knitr/hooks)
+knit_hooks$set(par=function(before, options, envir){
+if (before && options$fig.show!='none') par(mar=c(4,4,.2,.1),cex.lab=.95,cex.axis=.9,mgp=c(2,.7,0),tcl=-.3)
+})
+```
+
+```{r echo=FALSE}
+# load data
+
+```
+
+
+### Part 1 - Introduction:
+
+
+
+Work is a means to earn the money required for food, clothing, shelter, healthcare, education, and all other goods and services we use.  It is also an avenue for developing social networks, enhancing individual responsibility, expressing creativity, and benefiting society as a whole.^^1
+
+
+
+
+
+people need work - 
+Meet people and expand their social networks.
+Feel productive and valued.
+Shape a personal identity.
+Build a future.
+Develop new skills
+
+http://www.workwithoutlimits.org/individuals/why_work
+
+
+health benefits.  unemployed are more likely to suffer from obesity and depression
+
+http://theconversation.com/a-philosophers-view-the-benefits-and-dignity-of-work-829
+
+
+
+
+Household net worth
+Employment participation rate
+Deficit
+real wages
+manufacturing jobs
+all jobs
+manufacturing output
+
+
+immigrant population
+imports
+export
+
+
+
+### Part 2 - Data:
+
+
+```{r}
+#import the most current polling information into a data table for analysis
+require(XML)
+myURL <- "http://www.census.gov/foreign-trade/balance/c5700.html#2012" 
+
+tables <- readHTMLTable(myURL) # read the web page
+n.rows <- unlist(lapply(tables, function(t) dim(t)[1]))  #format to table 
+df <- tables[[which.max(n.rows)]]  #assign the data to a data frame
+
+write.csv(df, file = paste(file_loc, "Trade.csv",sep = ""),row.names=TRUE, na="") 
+
+```
+
+
+
+
+### Part 3 - Exploratory data analysis:
+
+
+### Part 4 - Inference:
+
+
+### Part 5 - Conclusion: 
+
+
+### References:
+
+
+### Appendix (optional):
+
+Remove this section if you don't have an appendix
+
+1. http://benefitof.net/benefits-of-working/
+
+
