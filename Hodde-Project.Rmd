@@ -1,5 +1,5 @@
 ---
-title: "IS606 Final Project"
+title: "US Manufacturing Job Losses and China Trade"
 author: "Rob Hodde"
 date: "May 15, 2016"
 output: html_document
@@ -22,12 +22,12 @@ if (before && options$fig.show!='none') par(mar=c(4,4,.2,.1),cex.lab=.95,cex.axi
 ```{r echo=FALSE}
 # load data
 
-file_loc <- "https://raw.githubusercontent.com/LovinSpoonful/IS606-FINAL-PROJECT/master/"
-#file_loc <- "C:/data/"
+#file_loc <- "https://raw.githubusercontent.com/LovinSpoonful/IS606-FINAL-PROJECT/master/"
+file_loc <- "C:/data/"
 ```
 
 
-### Part 1 - Introduction:
+####Introduction
 
 The U.S. lost 5.7 million manufacturing jobs in the 2000's.^1^  During the same time, annual imports of manufactured goods from China increased from $102 billion to $365 billion, increasing the annual trade deficit with China by $190 billion.^2^  
 
@@ -38,32 +38,46 @@ In our society, working is a means to earn the money required for food, clothing
 
 --------
 
-### Part 2 - Data:
+####Data
 
 
-The U.S. Census Bureau uses two key metrics to describe employment levels - the Unemployment Rate and the Labor Force Participation Rate (LFPR). The unemployment rate is determined using the Current Population Survey (CPS), a poll of 60,000 households conducted monthly.  The rules are complex but essentially the Census defines a person (age 16 or above) as employed if they worked for pay at all in the prior week, and unemployed if they did not work in the prior week but actively looked for work.  Everyone else is not considered part of the labor force and not included in proportional calculations.^8^  
+The U.S. Census Bureau uses two key metrics to describe employment levels - the Unemployment Rate and the Labor Force Participation Rate (LFPR). The unemployment rate is determined using the Current Population Survey (CPS), a poll of 60,000 households conducted monthly.  The rules are complex but essentially the Census defines a person (age 16 or above) as *employed* if they worked for pay in the prior week and *unemployed* if they did not work in the prior week but actively looked for work.  The remainder of the population is not considered part of the labor force and is not included in proportional calculations.^8^  
 
-The Unemployment metric excludes discouraged workers - those who are available for work, may have worked in the past, but did not actively seek a job in the past week.  To get around this problem, we also consider the LFPR.  Excluding children below age 16, the incarcerated, and non-civilian workers, the LFPR is the proportion of employed and unemployed people versus the overall population.^9^  This metric can be skewed by generationally-driven cycles, such as young people staying in school longer, people living longer, or the onset of the Baby Boomer retirement.  To minimize these effects, we can use the Prime Age LFPR (**PA-LFPR**), which is just like the LFPR except it just includes 25 to 54 year-olds.
+The Unemployment metric excludes discouraged workers - those who are available for work, may have worked in the past, but did not actively seek a job in the past week.  To get around this problem, we also consider the LFPR.  The LFPR is the proportion of employed and unemployed people versus the overall population, excluding children below age 16, the incarcerated, and military personnel.^9^  This metric is susceptible to cyclical skew from generational trends like young people staying in school longer, and the onset of the Baby Boomer retirements.  To minimize these effects, we can use the Prime Age LFPR (**PA-LFPR**), which is just like the LFPR except it includes 25 to 54 year-olds only.  
 
 Even the PA-LFPR does not consider the impact of the "underemployed" - people involuntarily working part time or in jobs that are not commensurate with their education level.  But it is the best we have.  
 
-This observational study will examine as its cases the years 1985 to 2015, in yearly intervals, with particular focus on the year 2001 as the pivot point where China entered the World Trade Organization, thereby eliminating potential tariff increases on Chinese imports to the U.S. while leaving the Chinese government free to indiscriminately control the renmibi / USD exchange rate.^10^  
+This observational study will examine as its cases the years 1985 to 2015, in yearly intervals, with particular focus on the year 2001 as the pivot point where China entered the World Trade Organization, thereby eliminating potential tariff increases on Chinese imports to the U.S. while leaving China free to control the renmibi / USD exchange rate.^10^  
 
 The two variables of interest are the total number of U.S. manufacturing jobs (**US-MFG**) and the value of goods imported from China (**CN-IMP**).  Both are numerical variables.  This paper suggests that the drastic drop in U.S. manufacturing employment is in response to and can be explained by the dramatic increase in goods imported from China. 
 
 The population of interest is the PA-LFPR as defined above.  The findings from this analysis can be generalized to that population due to the robust nature of the CPS conducted by the U.S. Census Bureau.  The Census states that they achieve a 90% confidence level with a confidence interval of 300,000 persons, over a PA-LFPR population of 100+ million persons.^2^  
 
-Because this is an observational study, it is difficult to establish a causal link between the two variables.  However, we can make an argument for causality by establishing the temporal precedence and covaration of the two variables, and by eliminating plausible alternative explanations.^11^  Due diligence in discovery of competing hypotheses has been exercised to avoid confirmation bias.  
+Because this is an observational study, it is difficult to establish a causal link between the two variables.  However, we can make an argument for causality by establishing the temporal precedence and covaration of the two variables, and by eliminating plausible alternative explanations (also known as lurking variables).^11^  Thorough discovery of competing hypotheses must be undertaken to avoid confirmation bias.  
 
-Below is the data for U.S. trade in goods with China (billions USD):  
+For this study we will use one data set for each of our two variables:  
 
+   1. U.S. Bureau of Labor Statistics data for U.S. trade in goods with China (billions USD)
+   2. U.S. Bureau of Labor Statistics data for U.S. manufacturing employment (millions of people)  
+   
+We will also use two additional data sets to check for "lurking" variables:  
+
+   3. U.S. Bureau of Economic Analysis data on Personal Consumption Expenditures for Durable Goods
+   4. U.S. Bureau of Labor Statistics data for U.S. manufacturing productivity (year over year percent change)  
+   
 ```{r, echo=FALSE}
 
-#read the imports data
+#read the data
 trade <- read.csv(paste(file_loc,"ChinaTrade.csv",sep = ""),header = TRUE, sep = ",")
-kable(trade)
+jobs <- read.csv(paste(file_loc,"MfgJobs.csv",sep = ""),header = TRUE, sep = ",")
+demand <- read.csv(paste(file_loc,"Personal_Consumption_Durable_Goods.csv",sep = ""),header = TRUE, sep = ",")
+productivity <- read.csv(paste(file_loc,"Productivity.csv",sep = ""),header = TRUE, sep = ",")
 
 ```
+
+
+
+
 
 
 
@@ -79,26 +93,53 @@ Explain how you've arrived at your conclusion using information on the sampling 
 
 
 
+### Part 3 - Exploratory data analysis:
 
+```
+Perform relevant descriptive statistics, including summary statistics and visualization of the data. Also address what the exploratory data analysis suggests about your research question.
+```
 
+We will combine the four data sets into a single data frame for ease of comparison:  
 
+```{r, echo= FALSE}
 
+#combine the Trade, Jobs, Demand and Productivity dataframes
 
-```{r}
-
+all_data <- merge(trade, jobs, by = "Year")
+all_data <- merge(all_data,demand, by = "Year")
+all_data <- merge(all_data,productivity, by = "Year")
+kable(all_data)
 
 ```
 
 
-
-
-### Part 3 - Exploratory data analysis:
+--------
 
 
 ### Part 4 - Inference:
 
+If your data fails some conditions and you can't use a theoretical method, then you should use simulation. If you can use both methods, then you should use both methods. It is your responsibility to figure out the appropriate methodology.
+Check conditions
+Theoretical inference (if possible) - hypothesis test and confidence interval
+Simulation based inference - hypothesis test and confidence interval
+Brief description of methodology that reflects your conceptual understanding
+
+
+
+
+
+--------
+
 
 ### Part 5 - Conclusion: 
+
+Write a brief summary of your findings without repeating your statements from earlier. Also include a discussion of what you have learned about your research question and the data you collected. You may also want to include ideas for possible future research.
+
+
+
+
+
+
 
 
 ### References:
@@ -121,22 +162,15 @@ Explain how you've arrived at your conclusion using information on the sampling 
 
 Remove this section if you don't have an appendix
 
+Other potentially useful variables in understanding the problem space:  
 
-
-
-```
-
-Household net worth
-Employment participation rate
-Deficit
-real wages
-manufacturing jobs
-all jobs
-manufacturing output in US, and in Asia
-
-immigrant population
-imports
-export
+   Household net worth
+   Employment participation rate
+   U.S. budget deficit
+   Real wages
+   Non-manufacturing employment
+   Total manufacturing output in the U.S. and Asia
+   Immigrant population proportion
 
 ```
 
