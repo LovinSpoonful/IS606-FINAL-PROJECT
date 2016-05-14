@@ -22,64 +22,53 @@ if (before && options$fig.show!='none') par(mar=c(4,4,.2,.1),cex.lab=.95,cex.axi
 ```{r echo=FALSE}
 # load data
 
+#file_loc <- "https://raw.githubusercontent.com/LovinSpoonful/IS606-FINAL-PROJECT/master/"
+file_loc <- "C:/data/"
 ```
 
 
 ### Part 1 - Introduction:
 
+The U.S. lost 5.7 million manufacturing jobs in the 2000's.^1^  During the same time, annual imports of manufactured goods from China increased from $102 billion to $365 billion, increasing the annual trade deficit with China by $190 billion.^2^  
 
+Are the two phenomena related?  Should we care?  Were the lost manufacturing jobs replaced with service jobs?  The answer to that question is unequivocably "No".  In the 2000's, the "prime age" (age 25-54) labor force participation rate dropped from 82% to 75%, its lowest point since 1984.  Today, six years into the next decade, it stands at 77%.^3^  
 
-Work is a means to earn the money required for food, clothing, shelter, healthcare, education, and all other goods and services we use.  It is also an avenue for developing social networks, enhancing individual responsibility, expressing creativity, and benefiting society as a whole.^^1
+In our society, working is a means to earn the money required for food, clothing, shelter, healthcare, education, and all other goods and services.  It is also an avenue for developing social networks, enhancing individual responsibility, expressing creativity, and benefiting society as a whole.^4^  Work can help people feel more productive and valued and to stay healthier and happier.^5,6^  Work can shape our personal identity and embolden us to plan for a better future.^7^  We should care if people can find work.  We should seek to understand if our trade relations with other countries are making it impossible for millions of U.S. citizens to find gainful employment.  
 
-
-
-
-
-people need work - 
-Meet people and expand their social networks.
-Feel productive and valued.
-Shape a personal identity.
-Build a future.
-Develop new skills
-
-http://www.workwithoutlimits.org/individuals/why_work
-
-
-health benefits.  unemployed are more likely to suffer from obesity and depression
-
-http://theconversation.com/a-philosophers-view-the-benefits-and-dignity-of-work-829
-
-
-
-
-Household net worth
-Employment participation rate
-Deficit
-real wages
-manufacturing jobs
-all jobs
-manufacturing output
-
-
-immigrant population
-imports
-export
-
-
+--------
 
 ### Part 2 - Data:
 
 
+The U.S. Census Bureau uses two key metrics to describe employment levels - the Unemployment Rate and the Labor Force Participation Rate (LFPR). The unemployment rate is determined using the Current Population Survey (CPS), a poll of 60,000 households conducted monthly.  The rules are complex but essentially the Census defines a person (age 16 or above) as employed if they worked for pay at all in the prior week, and unemployed if they did not work in the prior week but actively looked for work.  Everyone else is not considered part of the labor force and not included in proportional calculations.^8^  
+
+The Unemployment metric excludes discouraged workers - those who are available for work, may have worked in the past, but did not actively seek a job in the past week.  To get around this problem, we also consider the LFPR.  Excluding children below age 16, the incarcerated, and non-civilian workers, the LFPR is the proportion of employed and unemployed people versus the overall population.^9^  This metric can be skewed by generationally-driven cycles, such as young people staying in school longer, people living longer, or the onset of the Baby Boomer retirement.  To minimize these effects, we can use the Prime Age LFPR (**PA-LFPR**), which is just like the LFPR except it just includes 25 to 54 year-olds.
+
+Even the PA-LFPR does not consider the impact of the "underemployed" - people involuntarily working part time or in jobs that are not commensurate with their education level.  But it is the best we have.  
+
+This observational study will examine as its cases the years 1985 to 2015, in yearly intervals, with particular focus on the year 2001 as the pivot point where China entered the World Trade Organization, thereby eliminating potential tariff increases on Chinese imports to the U.S. while leaving the Chinese government free to indiscriminately control the renmibi / USD exchange rate.^10^  
+
+The two variables of interest are the total number of U.S. manufacturing jobs (**US-MFG**) and the value of goods imported from China (**CN-IMP**).  Both are numerical variables.  This paper suggests that the drastic drop in U.S. manufacturing employment is in response to and can be explained by the dramatic increase in goods imported from China. 
+
+The population of interest is the PA-LFPR as defined above.  The findings from this analysis can be generalized to that population due to the robust nature of the CPS conducted by the U.S. Census Bureau.  The Census states that they achieve a 90% confidence level with a confidence interval of 300,000 persons, over a PA-LFPR population of 100+ million persons.^2^  
+
+Because this is an observational study, it is difficult to establish a causal link between the two variables.  However, we can make an argument for causality by establishing the temporal precedence and covaration of the two variables, and by eliminating plausible alternative explanations.^11^  Due diligence in discovery of competing hypotheses should be exercised to avoid confirmation bias.  
+
+
+
+```
+Explain how you've arrived at your conclusion using information on the sampling and/or experimental design.
+```
+
+
+
+
+
+
+
+
 ```{r}
-#import the most current polling information into a data table for analysis
-require(XML)
-myURL <- "http://www.census.gov/foreign-trade/balance/c5700.html#2012" 
 
-tables <- readHTMLTable(myURL) # read the web page
-n.rows <- unlist(lapply(tables, function(t) dim(t)[1]))  #format to table 
-df <- tables[[which.max(n.rows)]]  #assign the data to a data frame
-
-write.csv(df, file = paste(file_loc, "Trade.csv",sep = ""),row.names=TRUE, na="") 
 
 ```
 
@@ -97,11 +86,42 @@ write.csv(df, file = paste(file_loc, "Trade.csv",sep = ""),row.names=TRUE, na=""
 
 ### References:
 
+1.  http://www.industryweek.com/the-2000s
+2.  http://www.census.gov/foreign-trade/balance/c5700.html#2012
+3.  http://equitablegrowth.org/declining-labor-force-participation-rate-causes-consequences-path-forward/
+4.  http://benefitof.net/benefits-of-working/
+5.  http://theconversation.com/a-philosophers-view-the-benefits-and-dignity-of-work-829
+6.  http://www.healthyworkinglives.com/advice/employability/work-is-good-for-your-health
+7.  http://www.workwithoutlimits.org/individuals/why_work
+8.  http://www.bls.gov/cps/cps_htgm.htm
+9.  http://www.bls.gov/bls/glossary.htm#L
+10. http://www.federalreserve.gov/pubs/feds/2014/201404/201404pap.pdf
+11. http://socialresearchmethods.net/kb/causeeff.php
+
+
 
 ### Appendix (optional):
 
 Remove this section if you don't have an appendix
 
-1. http://benefitof.net/benefits-of-working/
+
+
+
+```
+
+Household net worth
+Employment participation rate
+Deficit
+real wages
+manufacturing jobs
+all jobs
+manufacturing output in US, and in Asia
+
+immigrant population
+imports
+export
+
+```
+
 
 
