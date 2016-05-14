@@ -22,8 +22,8 @@ if (before && options$fig.show!='none') par(mar=c(4,4,.2,.1),cex.lab=.95,cex.axi
 ```{r echo=FALSE}
 # load data
 
-#file_loc <- "https://raw.githubusercontent.com/LovinSpoonful/IS606-FINAL-PROJECT/master/"
-file_loc <- "C:/data/"
+file_loc <- "https://raw.githubusercontent.com/LovinSpoonful/IS606-FINAL-PROJECT/master/"
+#file_loc <- "C:/data/"
 ```
 
 
@@ -34,6 +34,7 @@ The U.S. lost 5.7 million manufacturing jobs in the 2000's.^1^  During the same 
 Are the two phenomena related?  Should we care?  Were the lost manufacturing jobs replaced with service jobs?  The answer to that question is unequivocably "No".  In the 2000's, the "prime age" (age 25-54) labor force participation rate dropped from 82% to 75%, its lowest point since 1984.  Today, six years into the next decade, it stands at 77%.^3^  
 
 In our society, working is a means to earn the money required for food, clothing, shelter, healthcare, education, and all other goods and services.  It is also an avenue for developing social networks, enhancing individual responsibility, expressing creativity, and benefiting society as a whole.^4^  Work can help people feel more productive and valued and to stay healthier and happier.^5,6^  Work can shape our personal identity and embolden us to plan for a better future.^7^  We should care if people can find work.  We should seek to understand if our trade relations with other countries are making it impossible for millions of U.S. citizens to find gainful employment.  
+
 
 --------
 
@@ -52,13 +53,29 @@ The two variables of interest are the total number of U.S. manufacturing jobs (*
 
 The population of interest is the PA-LFPR as defined above.  The findings from this analysis can be generalized to that population due to the robust nature of the CPS conducted by the U.S. Census Bureau.  The Census states that they achieve a 90% confidence level with a confidence interval of 300,000 persons, over a PA-LFPR population of 100+ million persons.^2^  
 
-Because this is an observational study, it is difficult to establish a causal link between the two variables.  However, we can make an argument for causality by establishing the temporal precedence and covaration of the two variables, and by eliminating plausible alternative explanations.^11^  Due diligence in discovery of competing hypotheses should be exercised to avoid confirmation bias.  
+Because this is an observational study, it is difficult to establish a causal link between the two variables.  However, we can make an argument for causality by establishing the temporal precedence and covaration of the two variables, and by eliminating plausible alternative explanations.^11^  Due diligence in discovery of competing hypotheses has been exercised to avoid confirmation bias.  
+
+Below is the data for U.S. trade in goods with China (billions USD):  
+
+```{r, echo=FALSE}
+
+#read the imports data
+trade <- read.csv(paste(file_loc,"ChinaTrade.csv",sep = ""),header = TRUE, sep = ",")
+kable(trade)
+
+```
 
 
+
+--------
 
 ```
 Explain how you've arrived at your conclusion using information on the sampling and/or experimental design.
 ```
+
+--------
+
+
 
 
 
