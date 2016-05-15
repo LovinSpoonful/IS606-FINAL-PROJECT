@@ -30,7 +30,7 @@ file_loc <- "C:/data/"
 ---------  
 ---------  
 
-####Introduction
+#### Introduction
 
 The U.S. lost 5.7 million manufacturing jobs in the 2000's.^1^  During the same time, annual imports of manufactured goods from China increased from $102 billion to $365 billion, increasing the annual trade deficit with China by $190 billion.^2^  
 
@@ -39,14 +39,14 @@ Are the two phenomena related?  Should we care?  Were the lost manufacturing job
 In our society, working is a means to earn the money required for food, clothing, shelter, healthcare, education, and all other goods and services.  It is also an avenue for developing social networks, enhancing individual responsibility, expressing creativity, and benefiting society as a whole.^4^  Work can help people feel more productive and valued and to stay healthier and happier.^5,6^  Work can shape our personal identity and embolden us to plan for a better future.^7^  We should care if people can find work.  We should seek to understand if our trade relations with other countries are making it impossible for millions of U.S. citizens to find gainful employment.  
 
 
+
 --------
 
-####Data
-
+#### Data
 
 The U.S. Census Bureau uses two key metrics to describe employment levels - the Unemployment Rate and the Labor Force Participation Rate (LFPR). The unemployment rate is determined using the Current Population Survey (CPS), a poll of 60,000 households conducted monthly.  The rules are complex but essentially the Census defines a person (age 16 or above) as *employed* if they worked for pay in the prior week and *unemployed* if they did not work in the prior week but actively looked for work.  The remainder of the population is not considered part of the labor force and is not included in proportional calculations.^8^  
 
-The Unemployment metric excludes discouraged workers - those who are available for work, may have worked in the past, but did not actively seek a job in the past week.  To get around this problem, we also consider the LFPR.  The LFPR is the proportion of employed and unemployed people versus the overall population, excluding children below age 16, the incarcerated, and military personnel.^9^  This metric is susceptible to cyclical skew from generational trends like young people staying in school longer, and the onset of the Baby Boomer retirements.  To minimize these effects, we can use the Prime Age LFPR, which is just like the LFPR except it includes 25 to 54 year-olds only.  Even the Prime Age LFPR (hereafter referred to as **Participation**) does not consider the impact of the "underemployed" - people involuntarily working part time or in jobs that are not commensurate with their education level.  But it is the best we have.  
+The unemployment metric excludes discouraged workers - those who are available for work, may have worked in the past, but did not actively seek a job in the past week.  To get around this problem, we also consider the LFPR.  The LFPR is the proportion of employed and unemployed people versus the entire population excluding children below age 16, the incarcerated, and military personnel.^9^  This metric is susceptible to cyclical skew from generational trends like young people staying in school longer, and the onset of the Baby Boomer retirements.  To minimize these effects, we can use the Prime Age LFPR, which is just like the LFPR except it includes 25 to 54 year-olds only.  Even the Prime Age LFPR (hereafter referred to as **Participation**) does not consider the impact of the "underemployed" - people involuntarily working part time or in jobs that are not commensurate with their education level.  But it is the best we have.  
 
 This observational study will examine as its cases the years 1985 to 2015, in yearly intervals, with particular focus on the year 2001 as the pivot point where China entered the World Trade Organization, thereby eliminating potential tariff increases on Chinese imports to the U.S. *while leaving China free to control the Chinese Yuan / U.S. Dollar exchange rate*.^10^  
 
@@ -58,8 +58,8 @@ Because this is an observational study, it is difficult to establish a causal li
 
 For this study we will use one data set for each of our two variables:  
 
-   1. U.S. Bureau of Labor Statistics data for trade in goods with China, including **imports**, exports and balance of trade (billions USD)^2^  
-   2. U.S. Bureau of Labor Statistics data for manufacturing **employment** (millions of people)^12^  
+   1. U.S. Bureau of Labor Statistics data for trade in goods with China, including **imports**, exports and trade balance (billions USD)^2^  
+   2. U.S. Bureau of Labor Statistics data for manufacturing **employment** (millions of persons)^12^  
    
 We will use additional data sets to check for lurking or confounding variables:  
 
@@ -67,109 +67,186 @@ We will use additional data sets to check for lurking or confounding variables:
    4. U.S. Bureau of Labor Statistics data for prime age labor force **participation** rate (percent)^14^  
    5. U.S. Bureau of Labor Statistics data for manufacturing **productivity** (year over year percent change)^15^  
    6. Historic **exchange** rates between Chinese and U.S. currency (CNY/USD)^16^
-   7. U.S. **population** by year (millions of people)^17^
-   8. China's membership status to World Trade Organization at beginning of year (0 = Non-Member, 1 = Member)
+   7. U.S. **population** by year (millions of persons)^17^
+   8. China's membership status in World Trade Organization (**WTO**) at beginning of year (0 = Non-Member, 1 = Member)
       
 
 ```{r, echo=FALSE}
 
-#read the data
-trade         <- read.csv(paste(file_loc,"ChinaTrade.csv",sep = "")                        ,header = TRUE, sep = ",")
-employment    <- read.csv(paste(file_loc,"MfgJobs.csv",sep = "")                           ,header = TRUE, sep = ",")
-consumption   <- read.csv(paste(file_loc,"Personal_Consumption_Durable_Goods.csv",sep = ""),header = TRUE, sep = ",")
-participation <- read.csv(paste(file_loc,"PrimeAgeLaborParticipation.csv",sep = "")        ,header = TRUE, sep = ",")
-productivity  <- read.csv(paste(file_loc,"Productivity.csv",sep = "")                      ,header = TRUE, sep = ",")
-exchange      <- read.csv(paste(file_loc,"Exchange.csv",sep = "")                          ,header = TRUE, sep = ",")
-population    <- read.csv(paste(file_loc,"Population.csv",sep = "")                        ,header = TRUE, sep = ",")
-wto           <- read.csv(paste(file_loc,"WTO.csv",sep = "")                               ,header = TRUE, sep = ",")
+suppressWarnings(library(stringr))
+
+# establish the data categories to be studied 
+f <- c("trade","employment","consumption","participation","productivity","exchange","population","wto")
+
+# read the data into a single data frame
+for (i in 1:length(f)){
+    df <- read.csv(paste(file_loc, f[i],".csv",sep = ""),header = TRUE, sep = ",", stringsAsFactors = FALSE)
+    if (i == 1) {study <- df} else {study <- merge(study, df, by = "Year")}
+}  
+
+# convert every column to a number
+for (i in 1:length(study)){
+  study[,i] <- str_replace_all(study[,i], ",", "") # remove comma's
+  study[,i] <- as.numeric(study[,i])
+}
+
+# change trade values to USD billions, employment to millions
+for (i in 2:5){
+  study[,i] <- round(study[,i] / 1000, digits = 1)
+}
+
 ```
+
+
 
 --------
 
-```
-Explain how you've arrived at your conclusion using information on the sampling and/or experimental design.
-```
---------
+#### Exploratory data analysis
 
-
-####Exploratory data analysis:
-
-```
-Perform relevant descriptive statistics, including summary statistics and visualization of the data. Also address what the exploratory data analysis suggests about your research question.
-
-```
-
-Here is the data, merged for quick comparison:  
+The data for this study is sourced mainly from the U.S. Bureau of Labor Statistics (see References) and is shown in the table below.  The data has been combined from several BLS reports for easier comparison:  
 
 ```{r, echo= FALSE}
-
-#combine into single dataframe
-study <- merge(trade, employment,    by = "Year")
-study <- merge(study, participation, by = "Year")
-study <- merge(study, consumption,   by = "Year")
-study <- merge(study, productivity,  by = "Year")
-study <- merge(study, exchange,      by = "Year")
-study <- merge(study, population,    by = "Year")
-study <- merge(study, wto,           by = "Year")
 
 kable(study, caption = "US-China Trade Versus US Manufacturing Employment and Other Variables of Interest")
 
 ```
 
-*Note: The 1985-1987 Productivity numbers are the author's estimates. The data is not available from BLS.* 
+See Appendix A for summary statistics of each data element shown above.  
+
+The following chart illustrates the relationship between U.S. Imports of manufactured goods from China, and total U.S. manufacturing employment for the years 1985 to 2015.  
+
+
+```{r, echo=FALSE}
+
+#adapted from http://www.r-bloggers.com/multiple-y-axis-in-a-r-plot/
+
+par(mar=c(5, 12, 4, 4) + 0.1) # set plot margins
+
+plot(study$Year, study$Imports, axes=F, ylim=c(min(study$Imports),max(study$Imports)), xlab="", ylab="", 
+     type="l", col="indianred", main="", xlim = c(min(study$Year),max(study$Year)))
+points(study$Year, study$Imports,pch=20,col="indianred")
+axis(2, ylim=c(min(study$Imports),max(study$Imports)),col="indianred",lwd=2)
+mtext(2,text="Imports (Billions USD)",line=2) #vertical text for this plot
+
+par(new=T)
+plot(study$Year, study$Employment, axes=F, ylim=c(min(study$Employment),max(study$Employment)), xlab="", ylab="",
+     type="l", col="deepskyblue", lty=2, main="",xlim = c(min(study$Year),max(study$Year)),lwd=2)
+points(study$Year, study$Employment,pch=20, col="deepskyblue")
+axis(2, ylim=c(min(study$Employment),max(study$Employment)), col="deepskyblue", lwd=2,line=5.5)
+mtext(2,text="Employment (Millions of Persons)",line=8)
+
+axis(1,pretty(range(study$Year),10))
+mtext("Year",side=1,col="black",line=2)
+
+```
+
+The chart suggests an inverse relationship between the two variables.  Both variables exhibit a "hockey stick" appearance with the point of inflection between just after the year 2001, suggesting that China's accession to the WTO in 2001 precipitated the acceleration of the two phenomena.  
+
+We will use regression analysis to determine if a relationship exists between Imports and Employment.  
+
+
+--------
+
+### Inference
+
+Linear regression analysis is a good method to determine quantitatively if there is a relationship between two variables.  The two most important outputs of linear regression are the "P Value" and the "R Squared Value".  In layman's terms, the p-value describes how well one variable tracks with the other.  If the p-value for Imports Versus Employment were .05, it would mean we are 95% confident that Imports has a direct relationship to Employment.  A p-value of .80 means we are only 20% confident.  
+
+Most studies begin with at least an implied null hypothesis.  The null hypothesis always asserts that there is no relationship between the variables being studied.  The intent of most studies is to build an airtight case to reject the null hypothesis.  The first step is to calculate the p-value.  If the p-value is .05 or lower, we are 95% confident of the relationship between the explanatory and response variables and it is possible we could reject the null hypothesis.  
+
+We then check the R-Squared value.  This is the amount of variation that is explained by the model - ie: in our case, the relationship between Imports and Employment.  For example, if the R-Squared value is .6, then 60% of the variation is explained.  When the p-value is very low (meaning very high confidence) but the R-Squared value is also very low (meaning, the model doesn't explain much), we should not reject the null hypothesis.  
+
+A linear regression model also provides an intercept.  This is the value of the explanatory variable (in this study, Imports) where the response variable (Employment) is zero.  The model also provides a confidence interval for this intercept.  This is like a tolerance for a dimension on a drawing.  For example, if the intercept is 800 billion, and the confidence interval is 700 billion to 900 billion, then we would say we are 95% confident that the intercept is somewhere between 700 billion and 900 billion.  In layman's terms, "When we hit 700 billion in imports, we may have no manufacturing jobs left.  We certainly won't have any once we hit 900 billion in imports."  
+
+Below is the linear model for Imports versus Employment:  
+
+```{r, echo= FALSE}
+
+lm_e  <- lm(Imports ~ Employment, data = study)
+summary(lm_e)
+
+ci_e  <- confint(lm_e)
+ci_e
+
+```
+
+The p-value is nearly zero - this means we are very close to 100% confident.  The R-squared value is 0.93, meaning that 93% of the variation is explained by the model.  The intercept is 1225; the confidence interval is 1113 - 1337.  This means that the model predicts Employment will reach zero when Imports are between 1.1 and 1.3 trillion USD annually.  
+
+Alternately, if we reverse the model to Employment vs Imports, the intercept is 17.81 and the slope is -0.0134.  This implies that if the U.S. imported no manufactured goods from China, there would be 17.8 million manufacturing jobs (+- 400,000). It also implies that every billion USD in imports removes 13,400 jobs.  
+
+At face value these results strongly suggest that we can reject the null hypothesis ("Imports and Employment are not related").  They prove temporal precedence and covaration.  But we are not finished yet.  We must now evaluate alternative explanations.  This is accomplished using multivariate linear regression analysis.  
+
+
+```{r, eval= FALSE, echo= FALSE}
+
+# Example of comparing employment to another variable
+lm_alt  <- lm(Employment ~ Balance, data = study)
+summary(lm_alt)
+
+```
+
+Before proceeding to a multi-variate model, we examine each variable's individual relationship to Employment:  
+
+```
+Individual Linear Models - Relation to Employment
+
+Variable      Slope      Adj R-Squared    p-value
+------------  ---------  -------------    -------
+Imports       -   13.63     0.9272        0.00001
+Exchange       13402.00     0.0922        0.05364
+WTO           - 4200.70     0.8312        0.00001
+Consumption   -    0.06     0.7397        0.00001
+Productivity      51.92   - 0.0260        0.62860
+Population    -   81.29     0.8158        0.00001
+
+```
+Variables with negligible Slope, low R-Squared values, or high p-values can be excluded from further study, because they are insignificant.  This eliminates Exchange, Consumption and Productivity.  We will perform a multivariate test on Imports, WTO membership and Population.  
+
 
 ```{r}
-#use ggplot
 
-#plot(mat,a,type="l",col="red",ylim=c(0,1))
-#lines(mat,b,col="green")
-#lines(mat,c,col="blue")
-
-suppressWarnings(library(ggplot2))
-
-
-cor(study$Imports, study$Employment)
+# perform multi-variate regression test on three variables
+lm_all <- lm(Employment ~ Imports + WTO + Population, data = study)
+summary(lm_all)
 
 ```
 
+We see that Population now has a p-value of 0.61, eliminating it from further consideration.  
 
+
+```{r}
+
+# perform multi-variate regression test on three variables
+lm_all <- lm(Employment ~ Imports + WTO, data = study)
+summary(lm_all)
+
+```
+
+The slope of the WTO line is -1410, with a p-value of 0.0017.  This indicates with a 99.8% confidence level a relationship between China's entry into the WTO and U.S. manufacturing employment - the impact being 1.5 million jobs lost per year.  Excluding the effects of WTO membership, the relationship of Imports to Employment is 9,800 jobs lost per 1 billion in imports.  
 
 
 
 --------
 
-
-### Part 4 - Inference:
-
-```
-If your data fails some conditions and you can't use a theoretical method, then you should use simulation. If you can use both methods, then you should use both methods. It is your responsibility to figure out the appropriate methodology.
-Check conditions
-Theoretical inference (if possible) - hypothesis test and confidence interval
-Simulation based inference - hypothesis test and confidence interval
-Brief description of methodology that reflects your conceptual understanding
-```
+#### Conclusion
 
 
+This study shows that the catastrophic loss of U.S. manufacturing jobs is indeed strongly related to the dramatic increase in U.S. imports of manufactured goods from China, particularly after China's accession to the World Trade organization.  
 
+Further Exploration:  
 
---------
+In 1985 when China was an economic and technological backwater, the Yuan was worth $0.34.  Today China is a great world power and the Yuan is worth $0.16.  During most of the 2000's it was worth $0.12.  It would be interesting to find out how many Americans understand how easy it is for China drive down the cost of their goods by arbitrarily devaluing the Yuan, thereby incenting U.S. corporations to close domestic factories and purchase goods from China.  
 
+It would also be interesting to study the effects on American consumers, of purchasing cheaper goods from China.  Do poor and middle class Americans benefit?  How would they be affected if more consumer goods were produced in the U.S. and prices rose?  
 
-### Part 5 - Conclusion: 
+When I visited China in 2007, the entire eastern seaboard was covered in smog that stretched inland as far as 1000 km.  The rivers in Shanghai were brown and lifeless.  Does anyone know the ecological cost of Chinese energy and manufacturing production?  
 
-```
-Write a brief summary of your findings without repeating your statements from earlier. Also include a discussion of what you have learned about your research question and the data you collected. You may also want to include ideas for possible future research.
-```
+I saw shoeless, shirtless Chinese workers pouring molten metal, operating machines bereft of safety equipment.  China has no workman's compensation, no social safety net.  Does anyone know the human cost of operating this way?  
 
-
-
-
-
-
+****
 
 --------
 
-### References:
+#### References
 
 1.  http://www.industryweek.com/the-2000s
 2.  http://www.census.gov/foreign-trade/balance/c5700.html#2012
@@ -185,25 +262,50 @@ Write a brief summary of your findings without repeating your statements from ea
 12. http://data.bls.gov/timeseries/CES3000000001?data_tool=XGtable
 13. https://research.stlouisfed.org/fred2/series/PCEDG#
 14. http://data.bls.gov/timeseries/LNS12300060?data_tool=XGtable
-15. http://www.bls.gov/lpc/special_requests/mfgbardata.txt
+15. http://www.bls.gov/lpc/special_requests/mfgbardata.txt.  NOTE: Years 1985-7 are author's estimates.
 16. https://en.wikipedia.org/wiki/List_of_renminbi_exchange_rates
 17. http://www.multpl.com/united-states-population/table  
 
 --------
 
 
+#### Appendix 
 
-### Appendix (optional):
 
-Remove this section if you don't have an appendix
+Here are summary statistics of the data:  
+
+```{r}
+summary(study)
+```
+
+--------
+
+Linear regression analysis must be confirmed for normality.  Here we plot the normal curve of the residuals for Imports versus Employment:  
+
+```{r}
+qqnorm(lm_e$residuals)
+qqline(lm_e$residuals)  # adds diagonal line to the normal prob plot
+
+```
+
+Both tails deviate from the normal line a significant amount, but the condition for normality is still met.  
+
+--------
+
 
 Other potentially useful variables in understanding the problem space:  
 
-   Household net worth
-   U.S. budget deficit
-   Real wages
-   Non-manufacturing employment
-   Total manufacturing output in the U.S. and Asia
+   Household net worth  
+   
+   U.S. budget deficit  
+   
+   Real wage growth  
+   
+   Non-manufacturing employment  
+   
+   Total manufacturing output in the U.S. and Asia  
+   
+ 
 
 ```
 
