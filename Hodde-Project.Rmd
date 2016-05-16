@@ -24,7 +24,7 @@ if (before && options$fig.show!='none') par(mar=c(4,4,.2,.1),cex.lab=.95,cex.axi
 # load data
 
 #file_loc <- "https://raw.githubusercontent.com/LovinSpoonful/IS606-FINAL-PROJECT/master/"
-file_loc <- "C:/data/"
+file_loc <- "C:/Users/Rob/Documents/GitHub/IS606-FINAL-PROJECT/"
 ```
 
 ---------  
@@ -76,13 +76,14 @@ We will use additional data sets to check for lurking or confounding variables:
 suppressWarnings(library(stringr))
 
 # establish the data categories to be studied 
-f <- c("trade","employment","consumption","participation","productivity","exchange","population","wto")
+f <- c("trade","employment","consumption","participation","Productivity","exchange","population","wto")
 
 # read the data into a single data frame
+
 for (i in 1:length(f)){
     df <- read.csv(paste(file_loc, f[i],".csv",sep = ""),header = TRUE, sep = ",", stringsAsFactors = FALSE)
     if (i == 1) {study <- df} else {study <- merge(study, df, by = "Year")}
-}  
+}
 
 # convert every column to a number
 for (i in 1:length(study)){
@@ -149,11 +150,11 @@ We will use regression analysis to determine if a relationship exists between Im
 
 ### Inference
 
-Linear regression analysis is a good method to determine quantitatively if there is a relationship between two variables.  The two most important outputs of linear regression are the "P Value" and the "R Squared Value".  In layman's terms, the p-value describes how well one variable tracks with the other.  If the p-value for Imports Versus Employment were .05, it would mean we are 95% confident that Imports has a direct relationship to Employment.  A p-value of .80 means we are only 20% confident.  
+Linear regression analysis is a good method to determine quantitatively if there is a relationship between two variables.  The two most important outputs of linear regression are the "p-value" and the "R Squared Value".  In layman's terms, the p-value describes how well one variable tracks with the other.  If the p-value for Imports Versus Employment were .05, it would mean we are 95% confident that Imports has a direct relationship to Employment.  A p-value of .80 means we are only 20% confident.  
 
 Most studies begin with at least an implied null hypothesis.  The null hypothesis always asserts that there is no relationship between the variables being studied.  The intent of most studies is to build an airtight case to reject the null hypothesis.  The first step is to calculate the p-value.  If the p-value is .05 or lower, we are 95% confident of the relationship between the explanatory and response variables and it is possible we could reject the null hypothesis.  
 
-We then check the R-Squared value.  This is the amount of variation that is explained by the model - ie: in our case, the relationship between Imports and Employment.  For example, if the R-Squared value is .6, then 60% of the variation is explained.  When the p-value is very low (meaning very high confidence) but the R-Squared value is also very low (meaning, the model doesn't explain much), we should not reject the null hypothesis.  
+We then check the R-Squared value.  This is the amount of variation that is explained by the model - in this case, the relationship between Imports and Employment.  For example, if the R-Squared value is .6, then 60% of the variation is explained.  When the p-value is very low (meaning very high confidence) but the R-Squared value is also very low (meaning, the model doesn't explain much), we should not reject the null hypothesis.  
 
 A linear regression model also provides an intercept.  This is the value of the explanatory variable (in this study, Imports) where the response variable (Employment) is zero.  The model also provides a confidence interval for this intercept.  This is like a tolerance for a dimension on a drawing.  For example, if the intercept is 800 billion, and the confidence interval is 700 billion to 900 billion, then we would say we are 95% confident that the intercept is somewhere between 700 billion and 900 billion.  In layman's terms, "When we hit 700 billion in imports, we may have no manufacturing jobs left.  We certainly won't have any once we hit 900 billion in imports."  
 
@@ -171,57 +172,53 @@ ci_e
 
 The p-value is nearly zero - this means we are very close to 100% confident.  The R-squared value is 0.93, meaning that 93% of the variation is explained by the model.  The intercept is 1225; the confidence interval is 1113 - 1337.  This means that the model predicts Employment will reach zero when Imports are between 1.1 and 1.3 trillion USD annually.  
 
-Alternately, if we reverse the model to Employment vs Imports, the intercept is 17.81 and the slope is -0.0134.  This implies that if the U.S. imported no manufactured goods from China, there would be 17.8 million manufacturing jobs (+- 400,000). It also implies that every billion USD in imports removes 13,400 jobs.  
+At face value these results strongly suggest that we can reject the null hypothesis ("Imports and Employment are not related").  But we are not finished yet.  We must now evaluate alternative explanations.  This is accomplished using multivariate linear regression analysis.  
 
-At face value these results strongly suggest that we can reject the null hypothesis ("Imports and Employment are not related").  They prove temporal precedence and covaration.  But we are not finished yet.  We must now evaluate alternative explanations.  This is accomplished using multivariate linear regression analysis.  
+We start with all variables of interest, and then remove variables that don't add value.  (See Appendix B for full details.)  There are four variables that appear to matter, at least statistically: Imports, Consumption, Population and WTO.  Listed below are the coefficients of these variables in the multivariate model.  The higher the coefficient, the more impact the variable has.  
 
+```
+             (Intercept)     Imports   Consumption    Population     WTO
+             ----------------------------------------------------------------
+Coefficent    33.09          -0.0092     0.0006       -0.0763       -2.138 
 
-```{r, eval= FALSE, echo= FALSE}
+```
+We use the coefficients to produce a formula to predict the outcome (Employment):  
 
-# Example of comparing employment to another variable
-lm_alt  <- lm(Employment ~ Balance, data = study)
-summary(lm_alt)
+```
+Employment (millions of persons) =  
+  
+  + 33,090,000
+  -          .0092 X Imports (billions USD)
+  +          .0006 X Consumption (billions USD)
+  -          .0763 X Population (millions of persons)
+  - 2,138,000      X (If China is a member of WTO)
 
 ```
 
-Before proceeding to a multi-variate model, we examine each variable's individual relationship to Employment:  
+Now it doesn't make sense that as a country's population grows, employment drops.  This is just what actually happened.  And while the Consumption variable does have a positive relationship with Employment, the coefficient is so low that it is imperceptible on a chart. The impact of the WTO variable is obvious:  
+
+
+```{r, echo=FALSE}
+
+par(mar=c(5, 12, 4, 4) + 0.1) # set plot margins
+
+plot(study$Year, study$WTO, axes=F, ylim=c(min(study$WTO),max(study$WTO)), xlab="", ylab="", 
+     type="l", col="indianred", main="", xlim = c(min(study$Year),max(study$Year)))
+points(study$Year, study$WTO,pch=20,col="indianred")
+axis(2, ylim=c(min(study$WTO),max(study$WTO)),col="indianred",lwd=2)
+mtext(2,text="WTO Membership",line=2) #vertical text for this plot
+
+par(new=T)
+plot(study$Year, study$Employment, axes=F, ylim=c(min(study$Employment),max(study$Employment)), xlab="", ylab="",
+     type="l", col="deepskyblue", lty=2, main="",xlim = c(min(study$Year),max(study$Year)),lwd=2)
+points(study$Year, study$Employment,pch=20, col="deepskyblue")
+axis(2, ylim=c(min(study$Employment),max(study$Employment)), col="deepskyblue", lwd=2,line=5.5)
+mtext(2,text="Employment (Millions of Persons)",line=8)
+
+axis(1,pretty(range(study$Year),10))
+mtext("Year",side=1,col="black",line=2)
 
 ```
-Individual Linear Models - Relation to Employment
-
-Variable      Slope      Adj R-Squared    p-value
-------------  ---------  -------------    -------
-Imports       -   13.63     0.9272        0.00001
-Exchange       13402.00     0.0922        0.05364
-WTO           - 4200.70     0.8312        0.00001
-Consumption   -    0.06     0.7397        0.00001
-Productivity      51.92   - 0.0260        0.62860
-Population    -   81.29     0.8158        0.00001
-
-```
-Variables with negligible Slope, low R-Squared values, or high p-values can be excluded from further study, because they are insignificant.  This eliminates Exchange, Consumption and Productivity.  We will perform a multivariate test on Imports, WTO membership and Population.  
-
-
-```{r}
-
-# perform multi-variate regression test on three variables
-lm_all <- lm(Employment ~ Imports + WTO + Population, data = study)
-summary(lm_all)
-
-```
-
-We see that Population now has a p-value of 0.61, eliminating it from further consideration.  
-
-
-```{r}
-
-# perform multi-variate regression test on three variables
-lm_all <- lm(Employment ~ Imports + WTO, data = study)
-summary(lm_all)
-
-```
-
-The slope of the WTO line is -1410, with a p-value of 0.0017.  This indicates with a 99.8% confidence level a relationship between China's entry into the WTO and U.S. manufacturing employment - the impact being 1.5 million jobs lost per year.  Excluding the effects of WTO membership, the relationship of Imports to Employment is 9,800 jobs lost per 1 billion in imports.  
 
 
 
@@ -242,7 +239,7 @@ When I visited China in 2007, the entire eastern seaboard was covered in smog th
 
 I saw shoeless, shirtless Chinese workers pouring molten metal, operating machines bereft of safety equipment.  China has no workman's compensation, no social safety net.  Does anyone know the human cost of operating this way?  
 
-****
+
 
 --------
 
@@ -266,10 +263,10 @@ I saw shoeless, shirtless Chinese workers pouring molten metal, operating machin
 16. https://en.wikipedia.org/wiki/List_of_renminbi_exchange_rates
 17. http://www.multpl.com/united-states-population/table  
 
+
 --------
 
-
-#### Appendix 
+#### Appendix A
 
 
 Here are summary statistics of the data:  
@@ -293,21 +290,32 @@ Both tails deviate from the normal line a significant amount, but the condition 
 --------
 
 
-Other potentially useful variables in understanding the problem space:  
 
-   Household net worth  
-   
-   U.S. budget deficit  
-   
-   Real wage growth  
-   
-   Non-manufacturing employment  
-   
-   Total manufacturing output in the U.S. and Asia  
-   
- 
+#### Appendix B  
+
+Multi-variate analysis of all potential factors affecting Employment.  
+
+```{r}
+
+# perform multi-variate regression test on all variables
+lm_all <- lm(Employment ~ Imports + Consumption + Productivity + Exchange + Population + WTO, data = study)
+summary(lm_all)  # R-Squared = .9782
+
+lm_all <- lm(Employment ~ Imports + Consumption + Productivity            + Population + WTO, data = study)
+summary(lm_all)  # R-Squared = .9790
+
+lm_all <- lm(Employment ~ Imports + Consumption                           + Population + WTO, data = study)
+summary(lm_all)  # R-Squared = .9792
+
+lm_all <- lm(Employment ~ Imports + Consumption                                        + WTO, data = study)
+summary(lm_all)  # R-Squared = .9573
+
+lm_all <- lm(Employment ~ Imports                                         + Population + WTO, data = study)
+summary(lm_all)  # R-Squared = .9451
+
+lm_all <- lm(Employment ~ Imports                                                      + WTO, data = study)
+summary(lm_all)  # R-Squared = .9466
 
 ```
-
 
 
